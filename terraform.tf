@@ -11,32 +11,21 @@ provider "cloudflare" {
   token = var.cloudflare_token
 }
 
-data "digitalocean_droplet_snapshot" "nfs" {
-  name  = "nfs"
-  region = "fra1"
-  most_recent = true
-}
-
-
 data "digitalocean_ssh_key" "ondrejsika" {
   name = "ondrejsika"
 }
 
 
-resource "digitalocean_droplet" "nfs" {
-  image  = data.digitalocean_droplet_snapshot.nfs.id
-  name   = "nfs"
-  region = "fra1"
-  size   = "s-1vcpu-1gb"
-  ssh_keys = [
-    data.digitalocean_ssh_key.ondrejsika.id
-  ]
+module "nfs" {
+  source  = "ondrejsika/do-nfs/module"
+  version = "1.0.0"
+  tf_ssh_key = data.digitalocean_ssh_key.ondrejsika
 }
 
 resource "cloudflare_record" "nfs" {
   domain = "sikademo.com"
   name   = "nfs"
-  value  = digitalocean_droplet.nfs.ipv4_address
+  value  = module.nfs.ipv4_address
   type   = "A"
   proxied = false
 }
