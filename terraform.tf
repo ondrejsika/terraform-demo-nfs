@@ -1,14 +1,16 @@
 variable "do_token" {}
-variable "cloudflare_email" {}
-variable "cloudflare_token" {}
+variable "cloudflare_api_token" {}
 
 provider "digitalocean" {
   token = var.do_token
 }
 
 provider "cloudflare" {
-  email = var.cloudflare_email
-  token = var.cloudflare_token
+  api_token = var.cloudflare_api_token
+}
+
+locals {
+  sikademo_com_zone_id = "f2c00168a7ecd694bb1ba017b332c019"
 }
 
 data "digitalocean_ssh_key" "ondrejsika" {
@@ -23,7 +25,7 @@ module "nfs" {
 }
 
 resource "cloudflare_record" "nfs" {
-  domain = "sikademo.com"
+  zone_id = local.sikademo_com_zone_id
   name   = "nfs"
   value  = module.nfs.ipv4_address
   type   = "A"
